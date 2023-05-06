@@ -1,8 +1,8 @@
-﻿using FactApp;
-using Rg.Plugins.Popup.Services;
+﻿using Rg.Plugins.Popup.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.ConstrainedExecution;
@@ -10,31 +10,47 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using Xamarin.Forms.PlatformConfiguration;
 
 namespace FactApp
 {
     public partial class MainPage : ContentPage
     {
+        readonly FactDbContext db;
+
         public MainPage()
         {
             InitializeComponent();
-            BindingContext = new FactViewModel();
+
+            string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "mydb.db3");
+            db = new FactDbContext(dbPath);
         }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+
+            var Items = await db.GetItemsAsync();
+            if (Items.Count == 0)
+            {
+                var factList = populate();
+                foreach (var fact in factList)
+                {
+                    await db.SaveItemAsync(fact);
+                }
+            }
+            factList.ItemsSource = await db.GetItemsAsync();
+        }
+
         private async void OnFactSelected(object sender, EventArgs e)
         {
             var selectedFact = (FactData)((ViewCell)sender).BindingContext;
             await PopupNavigation.Instance.PushAsync(new FactCard(selectedFact));
         }
-    }
 
-
-    public class FactViewModel
-    {
-        public List<FactData> Facts { get; set; }
-
-        public FactViewModel()
+        public List<FactData> populate()
         {
-            Facts = new List<FactData>
+            return new List<FactData>
             {
                 new FactData
                 {

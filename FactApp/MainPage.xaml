@@ -12,10 +12,7 @@
             HorizontalOptions="Center"
             Text="Facts about Tug"
             TextColor="White" />
-        <ListView
-            x:Name="factList"
-            BackgroundColor="#541c5c"
-            ItemsSource="{Binding Facts}">
+        <ListView x:Name="factList" BackgroundColor="#541c5c">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <ViewCell Tapped="OnFactSelected">
